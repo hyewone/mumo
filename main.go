@@ -6,7 +6,6 @@ import (
 	// Package
 	api "mumogo/controller/api/stageGreeting"
 	"mumogo/controller/auth"
-	"mumogo/controller/crawler"
 	"mumogo/model"
 
 	// Security
@@ -93,9 +92,9 @@ func main() {
 	db.DB.AutoMigrate(&model.StageGreeting{})
 	db.DB.AutoMigrate(&model.StageGreetingUrl{})
 
-	crawler.NewCrawlerController().CrawlMegabox()
+	// crawler.NewCrawlerController().CrawlMegabox()
 	// crawler.NewCrawlerController().CrawlLotteCinema()
-	crawler.NewCrawlerController().CrawlCgv()
+	// crawler.NewCrawlerController().CrawlCgv()
 	// crawler.NewCrawlerController().CrawlTest()
 
 	// userRepository := repository.NewUserRepository()

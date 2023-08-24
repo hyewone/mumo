@@ -41,7 +41,7 @@ func (r *CrawlerRepository) AddStageGreeting(stageGreeting *model.StageGreeting)
 	var existingSg model.StageGreeting
 
 	keyAttrs := model.StageGreeting{
-		MovieID:    stageGreeting.MovieID,
+		Movie:      stageGreeting.Movie,
 		CinemaType: stageGreeting.CinemaType,
 		Theater:    stageGreeting.Theater,
 		ShowDate:   stageGreeting.ShowDate,
@@ -64,7 +64,7 @@ func (r *CrawlerRepository) AddStageGreetingUrl(stageGreetingUrl *model.StageGre
 	var existingUrls model.StageGreetingUrl
 
 	keyAttrs := model.StageGreetingUrl{
-		MovieID:    stageGreetingUrl.MovieID,
+		Movie:      stageGreetingUrl.Movie,
 		CinemaType: stageGreetingUrl.CinemaType,
 		Title:      stageGreetingUrl.Title,
 	}

@@ -19,7 +19,31 @@ func NewStageGreetingRepository() *StageGreetingRepository {
 
 func (r *StageGreetingRepository) GetStageGreetingUrls(cinemaType string) ([]model.StageGreetingUrl, error) {
 	var stageGreetingUrls []model.StageGreetingUrl
-	err := r.DB.Find(&stageGreetingUrls, "cinema_type = ?", cinemaType).Error
+	// var stageGreetingUrlsWithMovieName []model.StageGreetingUrlWithMovieName
+	// err := r.DB.Find(&stageGreetingUrls, "cinema_type = ?", cinemaType).Error
+
+	err := r.DB.Model(&model.StageGreetingUrl{}).Preload("Movie").Find(&stageGreetingUrls, "cinema_type = ?", cinemaType).Error
+
+	// err := r.DB.Table("stage_greeting_urls").
+	// 	Select("stage_greeting_urls.*, movies.name").
+	// 	Joins("INNER JOIN movies ON movies.id = stage_greeting_urls.movie_id").
+	// 	Find(&stageGreetingUrls).
+	// 	Error
+
+	// 	db.Joins("Company").Find(&users)
+	// // SELECT `users`.`id`,`users`.`name`,`users`.`age`,`Company`.`id` AS `Company__id`,`Company`.`name` AS `Company__name` FROM `users` LEFT JOIN `companies` AS `Company` ON `users`.`company_id` = `Company`.`id`;
+
+	// // inner join
+	// db.InnerJoins("Company").Find(&users)
+	// // SELECT `users`.`id`,`users`.`name`,`users`.`age`,`Company`.`id` AS `Company__id`,`Company`.`name` AS `Company__name` FROM `users` INNER JOIN `companies` AS `Company` ON `users`.`company_id` = `Company`.`id`;
+
+	// err := r.DB.
+	// 	Table("stage_greeting_urls").
+	// 	Select("stage_greeting_urls.*, movies.name as MovieNm").
+	// 	Joins("JOIN movies ON stage_greeting_urls.movie_id = movies.id").
+	// 	Where("stage_greeting_urls.cinema_type = ?", cinemaType).
+	// 	Scan(&stageGreetingUrlsWithMovieName).
+	// 	Error
 	if err != nil {
 		return nil, err
 	}

@@ -25,6 +25,7 @@ func NewStageGreetingController() *StageGreetingController {
 func (con *StageGreetingController) GetStageGreetingUrls(c *gin.Context) {
 	cinemaType := c.Query("cinemaType")
 	cinemaType = strings.ToUpper(cinemaType)
+
 	stageGreetingUrls, err := con.Service.GetStageGreetingUrls(cinemaType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while GetStageGreetingUrls"})

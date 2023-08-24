@@ -39,17 +39,16 @@ func (con *CrawlerController) AddMovie(names []string) {
 	}
 }
 
-func (con *CrawlerController) AddStageGreeting(stageGreetingList []map[string]string) {
+func (con *CrawlerController) AddStageGreeting(stageGreetingList []map[string]string, movieList []model.Movie) {
 
 	var stageGreetingModels []*model.StageGreeting
 
-	for _, data := range stageGreetingList {
+	for i, data := range stageGreetingList {
 		remainingSeats, err := strconv.Atoi(data["RemainingSeats"])
 		if err != nil {
 			// 변환 실패 시 에러 처리
 		}
 
-		movieId, err := strconv.Atoi(data["MovieID"])
 		if err != nil {
 			// 변환 실패 시 에러 처리
 		}
@@ -59,7 +58,7 @@ func (con *CrawlerController) AddStageGreeting(stageGreetingList []map[string]st
 			RemainingSeats: remainingSeats,
 			Theater:        data["Theater"],
 			AttendeeName:   data["AttendeeName"],
-			MovieID:        movieId,
+			Movie:          movieList[i],
 			CinemaType:     data["CinemaType"],
 		}
 		stageGreetingModels = append(stageGreetingModels, stageGreeting)
@@ -83,7 +82,7 @@ func (con *CrawlerController) AddStageGreetingUrl(names []string, urls []string,
 			continue
 		}
 
-		urlModel := model.NewStageGreetingUrl(int(movie.ID), cinemaType, titles[i], urls[i], imgs[i], "N")
+		urlModel := model.NewStageGreetingUrl(*movie, cinemaType, titles[i], urls[i], imgs[i], "N")
 		urlModels = append(urlModels, urlModel)
 	}
 
@@ -125,7 +124,7 @@ func (con *CrawlerController) CrawlMegabox() {
 
 		dataNoList = append(dataNoList, dataNo)
 		movieList = append(movieList, movieNm)
-		siteList = append(siteList, "https://m.megabox.co.kr/event/detail?eventNo="+dataNo)
+		siteList = append(siteList, "https://megabox.co.kr/event/detail?eventNo="+dataNo)
 		titleList = append(titleList, title)
 
 		var imgSrc string
@@ -139,6 +138,7 @@ func (con *CrawlerController) CrawlMegabox() {
 	con.AddMovie(movieList)
 	con.AddStageGreetingUrl(movieList, siteList, titleList, imgSrcList, "MEGABOX")
 
+	var movieModelList []model.Movie
 	// // 각 페이지에 접속하여 추가 크롤링 진행
 	for i, siteUrl := range siteList {
 		movie, err := con.Service.GetMovieByName(movieList[i])
@@ -147,13 +147,14 @@ func (con *CrawlerController) CrawlMegabox() {
 			continue
 		}
 
-		dataList, err := fetchStagereetingDataMegabox(ctx, siteUrl, int(movie.ID), "MEGABOX")
+		dataList, err := fetchStagereetingDataMegabox(ctx, siteUrl, "MEGABOX")
 		for _, data := range dataList {
 			stageGreetingList = append(stageGreetingList, data)
+			movieModelList = append(movieModelList, *movie)
 			fmt.Println(data)
 		}
 	}
-	con.AddStageGreeting(stageGreetingList)
+	con.AddStageGreeting(stageGreetingList, movieModelList)
 }
 
 func (con *CrawlerController) CrawlLotteCinema() {
@@ -171,7 +172,7 @@ func (con *CrawlerController) CrawlLotteCinema() {
 	var movieList, siteList, titleList, imgSrcList []string
 	// var dataNoList, movieList, imgSrcList, siteList []string
 	var aNode, aNode2 []*cdp.Node
-	var stageGreetingList []map[string]string
+	// var stageGreetingList []map[string]string
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(url),
@@ -336,7 +337,7 @@ func (con *CrawlerController) CrawlLotteCinema() {
 
 	con.AddMovie(movieList)
 	con.AddStageGreetingUrl(movieList, siteList, titleList, imgSrcList, "LOTTECINEMA")
-	con.AddStageGreeting(stageGreetingList)
+	// con.AddStageGreeting(stageGreetingList)
 }
 
 func (con *CrawlerController) CrawlCgv() {
@@ -434,7 +435,7 @@ func (con *CrawlerController) CrawlCgv() {
 	// }
 }
 
-func fetchStagereetingDataMegabox(ctx context.Context, url string, id int, cinemaType string) ([]map[string]string, error) {
+func fetchStagereetingDataMegabox(ctx context.Context, url string, cinemaType string) ([]map[string]string, error) {
 	// url := "https://www.megabox.co.kr/event/curtaincall"
 	// body > div.container.event-detail-cont > div.event-sec.type0401 > div > div
 
@@ -476,7 +477,6 @@ func fetchStagereetingDataMegabox(ctx context.Context, url string, id int, cinem
 			"RemainingSeats": strings.TrimSpace(remainingSeats),
 			"Theater":        strings.TrimSpace(theater),
 			"AttendeeName":   strings.TrimSpace(attendeeName),
-			"MovieID":        strconv.Itoa(id),
 			"CinemaType":     cinemaType,
 		}
 		dataList = append(dataList, data)
@@ -484,45 +484,45 @@ func fetchStagereetingDataMegabox(ctx context.Context, url string, id int, cinem
 	return dataList, nil
 }
 
-func fetchStagereetingDataLotteCinema(ctx context.Context, cinemaType string) ([]map[string]string, error) {
+// func fetchStagereetingDataLotteCinema(ctx context.Context, cinemaType string) ([]map[string]string, error) {
 
-	fmt.Println("fetchStagereetingDataLotteCinema")
-	var ticketingBoxes []*cdp.Node
-	selector := "#eventContainer > div > div:nth-child(2) > div.preview_list > div:nth-child(1)"
+// 	fmt.Println("fetchStagereetingDataLotteCinema")
+// 	var ticketingBoxes []*cdp.Node
+// 	selector := "#eventContainer > div > div:nth-child(2) > div.preview_list > div:nth-child(1)"
 
-	err := chromedp.Run(ctx,
-		chromedp.WaitVisible(selector),
-		chromedp.Nodes(selector, &ticketingBoxes),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+// 	err := chromedp.Run(ctx,
+// 		chromedp.WaitVisible(selector),
+// 		chromedp.Nodes(selector, &ticketingBoxes),
+// 	)
+// if err != nil {
+// 	log.Fatal(err)
+// }
 
-	var dataList []map[string]string
-	var showDate, showTime, theater, attendeeName string
+// var dataList []map[string]string
+// var showDate, showTime, theater, attendeeName string
 
-	for _, box := range ticketingBoxes {
-		chromedp.Run(ctx,
-			chromedp.Text("dl:nth-child(1) > dd", &showDate, chromedp.ByQuery, chromedp.FromNode(box)),
-			chromedp.Text("dl:nth-child(2) > dd", &showTime, chromedp.ByQuery, chromedp.FromNode(box)),
-			// chromedp.Text("dl:nth-child(3) > dd", &remainingSeats, chromedp.ByQuery, chromedp.FromNode(box)),
-			chromedp.Text("dl:nth-child(3) > dd", &theater, chromedp.ByQuery, chromedp.FromNode(box)),
-			chromedp.Text("dl:nth-child(4) > dd", &attendeeName, chromedp.ByQuery, chromedp.FromNode(box)),
-		)
+// for _, box := range ticketingBoxes {
+// 	chromedp.Run(ctx,
+// 		chromedp.Text("dl:nth-child(1) > dd", &showDate, chromedp.ByQuery, chromedp.FromNode(box)),
+// 		chromedp.Text("dl:nth-child(2) > dd", &showTime, chromedp.ByQuery, chromedp.FromNode(box)),
+// 		// chromedp.Text("dl:nth-child(3) > dd", &remainingSeats, chromedp.ByQuery, chromedp.FromNode(box)),
+// 		chromedp.Text("dl:nth-child(3) > dd", &theater, chromedp.ByQuery, chromedp.FromNode(box)),
+// 			chromedp.Text("dl:nth-child(4) > dd", &attendeeName, chromedp.ByQuery, chromedp.FromNode(box)),
+// 		)
 
-		data := map[string]string{
-			"ShowDate": strings.TrimSpace(showDate),
-			"ShowTime": strings.TrimSpace(showTime),
-			// "RemainingSeats": strings.TrimSpace(remainingSeats),
-			"Theater":      strings.TrimSpace(theater),
-			"AttendeeName": strings.TrimSpace(attendeeName),
-			"MovieID":      strconv.Itoa(1), //strconv.Itoa(id),
-			"CinemaType":   cinemaType,
-		}
-		dataList = append(dataList, data)
-	}
-	return dataList, nil
-}
+// 		data := map[string]string{
+// 			"ShowDate": strings.TrimSpace(showDate),
+// 			"ShowTime": strings.TrimSpace(showTime),
+// 			// "RemainingSeats": strings.TrimSpace(remainingSeats),
+// 			"Theater":      strings.TrimSpace(theater),
+// 			"AttendeeName": strings.TrimSpace(attendeeName),
+// 			"Movie":        movie, //strconv.Itoa(id),
+// 			"CinemaType":   cinemaType,
+// 		}
+// 		dataList = append(dataList, data)
+// 	}
+// 	return dataList, nil
+// }
 
 func (con *CrawlerController) CrawlTest() {
 
