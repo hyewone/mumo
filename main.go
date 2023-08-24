@@ -4,10 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	// Package
-	"mumogo/controller/album"
+	api "mumogo/controller/api/stageGreeting"
 	"mumogo/controller/auth"
 	"mumogo/controller/crawler"
-	"mumogo/controller/stageGreeting"
 	"mumogo/model"
 
 	// Security
@@ -23,7 +22,8 @@ import (
 )
 
 var (
-	authController = auth.NewAuthController()
+	authController          = auth.NewAuthController()
+	stageGreetingController = api.NewStageGreetingController()
 )
 
 func setupRouter() *gin.Engine {
@@ -31,19 +31,26 @@ func setupRouter() *gin.Engine {
 
 	// CORS 설정
 	config := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3001"},
+		AllowedOrigins:   []string{"http://localhost:3001", "http://localhost:8080"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
 		Debug:            true,
 	})
 
 	router.Use(config)
-	router.Use(authController.CheckAccessToken)
+	// router.Use(authController.CheckAccessToken)
 
 	// 라우팅 설정
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json") // The url pointing to API definition
-	router.GET("/test", stageGreeting.GetStageGreetings)
-	router.GET("/albums", album.GetAlbums)
+
+	// "api/open/*" 패턴에 대한 JWT 토큰 체크를 하지 않음
+	// openGroup := router.Group("/api/open")
+	// {
+	// 	openGroup.GET("/stageGreetings", stageGreetingController.GetStageGreetingUrls)
+	// }
+
+	router.GET("/api/v1/stageGreetings", stageGreetingController.GetStageGreetingUrls)
+
 	router.POST("/auth/login", authController.Login)
 	router.GET("/auth/users", authController.GetUsers)
 

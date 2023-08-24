@@ -129,14 +129,15 @@ func (con *CrawlerController) CrawlMegabox() {
 		titleList = append(titleList, title)
 
 		var imgSrc string
+		var ok bool
 		chromedp.Run(ctx,
-			chromedp.AttributeValue("p.img > img", "src", &imgSrc, nil),
+			chromedp.AttributeValue("a > p > img", "src", &imgSrc, &ok, chromedp.ByQuery, chromedp.FromNode(node)),
 		)
 		imgSrcList = append(imgSrcList, imgSrc)
 	}
 
 	con.AddMovie(movieList)
-	con.AddStageGreetingUrl(movieList, siteList, titleList, imgSrcList, "MEGEBOX")
+	con.AddStageGreetingUrl(movieList, siteList, titleList, imgSrcList, "MEGABOX")
 
 	// // 각 페이지에 접속하여 추가 크롤링 진행
 	for i, siteUrl := range siteList {

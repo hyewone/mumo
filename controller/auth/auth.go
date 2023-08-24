@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -32,8 +31,6 @@ func (con *AuthController) Login(c *gin.Context) {
 
 	userEmail := c.PostForm("user_email")
 	providerType := c.PostForm("provider_type")
-	fmt.Print(userEmail)
-	fmt.Print(providerType)
 
 	if userEmail == "" || providerType == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "user_email and provider_type must be provided"})
