@@ -48,7 +48,8 @@ func setupRouter() *gin.Engine {
 	// 	openGroup.GET("/stageGreetings", stageGreetingController.GetStageGreetingUrls)
 	// }
 
-	router.GET("/api/v1/stageGreetings", stageGreetingController.GetStageGreetingUrls)
+	router.GET("/api/v1/stageGreetingUrls", stageGreetingController.GetStageGreetingUrls)
+	router.GET("/api/v1/stageGreetings", stageGreetingController.GetStageGreetings)
 
 	router.POST("/auth/login", authController.Login)
 	router.GET("/auth/users", authController.GetUsers)

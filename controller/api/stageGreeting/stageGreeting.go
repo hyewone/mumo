@@ -18,10 +18,6 @@ func NewStageGreetingController() *StageGreetingController {
 	}
 }
 
-// router.GET("/open/megabox/stageGreetings", stageGreetingController.GetMegaboxStageGreetings)
-// router.GET("/open/lottecinema/stageGreetings", stageGreetingController.GetLottecinemaStageGreetings)
-// router.GET("/open/cgv/stageGreetings", stageGreetingController.GetCgvStageGreetings)
-
 func (con *StageGreetingController) GetStageGreetingUrls(c *gin.Context) {
 	cinemaType := c.Query("cinemaType")
 	cinemaType = strings.ToUpper(cinemaType)
@@ -32,6 +28,18 @@ func (con *StageGreetingController) GetStageGreetingUrls(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"stageGreetingUrls": stageGreetingUrls})
+}
+
+func (con *StageGreetingController) GetStageGreetings(c *gin.Context) {
+	// cinemaType := c.Query("cinemaType")
+	// cinemaType = strings.ToUpper(cinemaType)
+
+	stageGreetings, err := con.Service.GetStageGreetings()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while GetStageGreetings"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"stageGreetings": stageGreetings})
 }
 
 // @Summary Create user

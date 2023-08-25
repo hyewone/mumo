@@ -50,6 +50,19 @@ func (r *StageGreetingRepository) GetStageGreetingUrls(cinemaType string) ([]mod
 	return stageGreetingUrls, nil
 }
 
+func (r *StageGreetingRepository) GetStageGreetings() ([]model.StageGreeting, error) {
+	var stageGreetings []model.StageGreeting
+
+	err := r.DB.Model(&model.StageGreeting{}).
+		Preload("Movie").Find(&stageGreetings).
+		Order("show_date, show_time, movies.name, theater, attendee_name asc").
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return stageGreetings, nil
+}
+
 // func (r *UserRepository) GetUserByEmailAndProvider(email string, provider string) (*model.User, error) {
 // 	var user model.User
 // 	err := r.DB.Where("email = ? AND provider = ?", email, provider).First(&user).Error

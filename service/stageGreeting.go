@@ -19,6 +19,10 @@ func (s *StageGreetingService) GetStageGreetingUrls(cinemaType string) ([]model.
 	return s.Repo.GetStageGreetingUrls(cinemaType)
 }
 
+func (s *StageGreetingService) GetStageGreetings() ([]model.StageGreeting, error) {
+	return s.Repo.GetStageGreetings()
+}
+
 // func (s *UserService) IsUserExists(email string, provider string) bool {
 // 	_, err := s.Repo.GetUserByEmailAndProvider(email, provider)
 // 	return err == nil
