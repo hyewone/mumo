@@ -27,7 +27,13 @@ jobs:
               env:
                 - name: PORT
                   value: 8080
+              ports: ""
               strategy: rolling
+              buildenv:
+                - name: GOOS
+                  value: linux
+                - name: GOARCH
+                  value: amd64
             context:
               git:
                 url: git@github.com:${{ github.repository }}.git
