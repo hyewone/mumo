@@ -30,7 +30,7 @@ func setupRouter() *gin.Engine {
 
 	// CORS 설정
 	config := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3001", "http://localhost:8080"},
+		AllowedOrigins:   []string{"http://localhost:3001", "http://localhost:8080", "https://port-0-mumo-1xxfe2bllyrqhy9.sel5.cloudtype.app"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
 		Debug:            true,
