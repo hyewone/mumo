@@ -10,7 +10,8 @@ import (
 var DB *gorm.DB
 
 func InitDB() error {
-	dsn := "host=localhost user=postgre_local password=1234 dbname=mumo port=5432 sslmode=disable TimeZone=Asia/Seoul"
+	// dsn := "host=localhost user=postgre_local password=1234 dbname=mumo port=5432 sslmode=disable TimeZone=Asia/Seoul"
+	dsn := "host=database.c0u6xj9tqa4x.ap-northeast-2.rds.amazonaws.com user=hyenee password=skfkrh12 dbname=mumo port=5432 sslmode=disable TimeZone=Asia/Seoul"
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 

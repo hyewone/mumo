@@ -1,6 +1,6 @@
 module mumogo
 
-go 1.21.0
+go 1.20
 
 require (
 	cloud.google.com/go/vision v1.2.0
