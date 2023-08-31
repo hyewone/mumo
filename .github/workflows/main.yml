@@ -13,7 +13,7 @@ jobs:
         uses: cloudtype-github-actions/connect@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          ghtoken: ${{ secrets.GHP_TOKEN }}
+          ghtoken: ${{ secrets.CLOUDTYPE_GITACTION }}
       - name: Deploy
         uses: cloudtype-github-actions/deploy@v1
         with:
@@ -27,8 +27,6 @@ jobs:
               env:
                 - name: PORT
                   value: 8080
-              ports: 8080
-              start: ./mumogo
               strategy: rolling
             context:
               git:
