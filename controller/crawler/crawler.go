@@ -7,7 +7,6 @@ import (
 	"mumogo/model"
 	"mumogo/service"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -44,22 +43,15 @@ func (con *CrawlerController) AddStageGreeting(stageGreetingList []map[string]st
 	var stageGreetingModels []*model.StageGreeting
 
 	for i, data := range stageGreetingList {
-		remainingSeats, err := strconv.Atoi(data["RemainingSeats"])
-		if err != nil {
-			// 변환 실패 시 에러 처리
-		}
-
-		if err != nil {
-			// 변환 실패 시 에러 처리
-		}
 		stageGreeting := &model.StageGreeting{
-			ShowDate:       data["ShowDate"],
-			ShowTime:       data["ShowTime"],
-			RemainingSeats: remainingSeats,
-			Theater:        data["Theater"],
-			AttendeeName:   data["AttendeeName"],
-			Movie:          movieList[i],
-			CinemaType:     data["CinemaType"],
+			ShowDate:     data["ShowDate"],
+			ShowTime:     data["ShowTime"],
+			ShowMoment:   data["ShowMoment"],
+			Theater:      data["Theater"],
+			Hall:         data["Hall"],
+			AttendeeName: data["AttendeeName"],
+			Movie:        movieList[i],
+			CinemaType:   data["CinemaType"],
 		}
 		stageGreetingModels = append(stageGreetingModels, stageGreeting)
 	}
@@ -70,18 +62,19 @@ func (con *CrawlerController) AddStageGreeting(stageGreetingList []map[string]st
 	}
 }
 
-func (con *CrawlerController) AddStageGreetingUrl(names []string, urls []string, titles []string, imgs []string, cinemaType string) {
+func (con *CrawlerController) AddStageGreetingUrl(names []string, urls []string, titles []string, imgs []string, cinemaType string) []*model.Movie {
 
 	var urlModels []*model.StageGreetingUrl
+	var movieModels []*model.Movie
 
 	for i, name := range names {
 		// 영화 이름으로 영화 ID 조회
 		movie, err := con.Service.GetMovieByName(name)
 		if err != nil {
-			// Handle error
+			fmt.Printf("Error while getting movie for name %s: %v\n", name, err)
 			continue
 		}
-
+		movieModels = append(movieModels, movie)
 		urlModel := model.NewStageGreetingUrl(*movie, cinemaType, titles[i], urls[i], imgs[i], "N")
 		urlModels = append(urlModels, urlModel)
 	}
@@ -90,9 +83,11 @@ func (con *CrawlerController) AddStageGreetingUrl(names []string, urls []string,
 	if err != nil {
 		// Handle error
 	}
+	return movieModels
 }
 
 func (con *CrawlerController) CrawlMegabox() {
+	fmt.Println("[CrawlMegabox] - start CrawlMegabox")
 	// https://www.megabox.co.kr/event/curtaincall
 	// https://www.megabox.co.kr/event/detail?eventNo=13894
 	ctx, cancel := chromedp.NewContext(context.Background())
@@ -101,7 +96,7 @@ func (con *CrawlerController) CrawlMegabox() {
 	url := "https://www.megabox.co.kr/event/curtaincall"
 	selector := "#event-list-wrap > div > div > ul > li > a"
 
-	var dataNoList, movieList, imgSrcList, siteList, titleList []string
+	var movieList, imgSrcList, siteList, titleList []string
 	var aNode []*cdp.Node
 	var stageGreetingList []map[string]string
 
@@ -118,43 +113,51 @@ func (con *CrawlerController) CrawlMegabox() {
 	for _, node := range aNode {
 		dataNo, _ := node.Attribute("data-no")
 		title, _ := node.Attribute("title")
-		re := regexp.MustCompile(`<([^>]+)>`)
-		match := re.FindStringSubmatch(title)
-		movieNm := match[1]
 
-		dataNoList = append(dataNoList, dataNo)
-		movieList = append(movieList, movieNm)
-		siteList = append(siteList, "https://megabox.co.kr/event/detail?eventNo="+dataNo)
-		titleList = append(titleList, title)
+		if strings.Contains(title, "무대인사") {
+			re := regexp.MustCompile(`<([^>]+)>`)
+			match := re.FindStringSubmatch(title)
+			movieNm := match[1]
+			movieList = append(movieList, movieNm)
+			siteList = append(siteList, "https://megabox.co.kr/event/detail?eventNo="+dataNo)
+			titleList = append(titleList, title)
 
-		var imgSrc string
-		var ok bool
-		chromedp.Run(ctx,
-			chromedp.AttributeValue("a > p > img", "src", &imgSrc, &ok, chromedp.ByQuery, chromedp.FromNode(node)),
-		)
-		imgSrcList = append(imgSrcList, imgSrc)
+			var imgSrc string
+			var ok bool
+			chromedp.Run(ctx,
+				chromedp.AttributeValue("a > p > img", "src", &imgSrc, &ok, chromedp.ByQuery, chromedp.FromNode(node)),
+			)
+			imgSrcList = append(imgSrcList, imgSrc)
+		}
 	}
 
 	con.AddMovie(movieList)
-	con.AddStageGreetingUrl(movieList, siteList, titleList, imgSrcList, "MEGABOX")
+	movieModelList := con.AddStageGreetingUrl(movieList, siteList, titleList, imgSrcList, "MEGABOX")
 
-	var movieModelList []model.Movie
+	var greetingMovieModelList []model.Movie
 	// // 각 페이지에 접속하여 추가 크롤링 진행
 	for i, siteUrl := range siteList {
-		movie, err := con.Service.GetMovieByName(movieList[i])
-		if err != nil {
-			// Handle error
-			continue
-		}
+		fmt.Println("[access siteUrl] - ing CrawlMegabox")
+		movie := movieModelList[i]
+		// movie, err := con.Service.GetMovieByName(movieList[i])
+		// if err != nil {
+		// 	// Handle error
+		// 	continue
+		// }
 
 		dataList, err := fetchStagereetingDataMegabox(ctx, siteUrl, "MEGABOX")
+		fmt.Println(dataList)
 		for _, data := range dataList {
 			stageGreetingList = append(stageGreetingList, data)
-			movieModelList = append(movieModelList, *movie)
+			greetingMovieModelList = append(greetingMovieModelList, *movie)
 			fmt.Println(data)
 		}
+		if err != nil {
+			// 	// Handle error
+			continue
+		}
 	}
-	con.AddStageGreeting(stageGreetingList, movieModelList)
+	con.AddStageGreeting(stageGreetingList, greetingMovieModelList)
 }
 
 func (con *CrawlerController) CrawlLotteCinema() {
@@ -436,50 +439,77 @@ func (con *CrawlerController) CrawlCgv() {
 }
 
 func fetchStagereetingDataMegabox(ctx context.Context, url string, cinemaType string) ([]map[string]string, error) {
+	fmt.Println("[get data in siteUrl] - ing fetchStagereetingDataMegabox")
+	fmt.Println(url)
 	// url := "https://www.megabox.co.kr/event/curtaincall"
 	// body > div.container.event-detail-cont > div.event-sec.type0401 > div > div
 
-	var ticketingBoxes []*cdp.Node
-	selector := "body > div.container.event-detail-cont > div.event-sec.type0401 > div > div"
+	var days []*cdp.Node
+	var hoichas []*cdp.Node
+
+	var dataList []map[string]string
+	var showDate, showTime, showMoment, theater, hall, attendeeName string
+
+	// daysSelector := "body > div.container.event-detail-cont > div.event-sec.type0401 > div > div"
+	daysSelector := "#contents > div.inner-wrap > div > ul > li"
+	// hoichaSelector := "#contents > div.inner-wrap > div > ul > li:nth-child(1) > div:nth-child(2)"
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(url),
-		chromedp.WaitVisible(selector),
-		chromedp.Nodes(selector, &ticketingBoxes),
+		chromedp.WaitVisible(daysSelector),
+		chromedp.Nodes(daysSelector, &days),
 	)
 	if err != nil {
-		log.Fatal(err)
+		return dataList, nil
 	}
 
-	var dataList []map[string]string
-	var showDate, showTime, remainingSeats, theater, attendeeName string
+	for _, day := range days {
 
-	fmt.Println()
-
-	for _, box := range ticketingBoxes {
-		chromedp.Run(ctx,
-			chromedp.Text("li:nth-child(1)", &showDate, chromedp.ByQuery, chromedp.FromNode(box)),
-			chromedp.Text("li:nth-child(2)", &showTime, chromedp.ByQuery, chromedp.FromNode(box)),
-			chromedp.Text("li:nth-child(3)", &remainingSeats, chromedp.ByQuery, chromedp.FromNode(box)),
-			chromedp.Text("li:nth-child(4)", &theater, chromedp.ByQuery, chromedp.FromNode(box)),
-			chromedp.Text("li:nth-child(5)", &attendeeName, chromedp.ByQuery, chromedp.FromNode(box)),
+		err = chromedp.Run(ctx,
+			chromedp.Text("p.greeting-date", &showDate, chromedp.ByQuery, chromedp.FromNode(day)),
+			chromedp.Nodes("div", &hoichas, chromedp.ByQuery, chromedp.FromNode(day)),
 		)
+
+		if err != nil {
+			continue
+		}
+		fmt.Println("[showDate]")
+		fmt.Println(showDate)
+
+		for _, hoicha := range hoichas {
+			chromedp.Run(ctx,
+				chromedp.Text("p.greeting-location", &theater, chromedp.ByQuery, chromedp.FromNode(hoicha)),
+				chromedp.Text("p.greeting-time", &showTime, chromedp.ByQuery, chromedp.FromNode(hoicha)),
+				chromedp.Text("p.greeting-moment", &showMoment, chromedp.ByQuery, chromedp.FromNode(hoicha)),
+				chromedp.Text("p.greeting-person", &attendeeName, chromedp.ByQuery, chromedp.FromNode(hoicha)),
+			)
+		}
 
 		showDate = strings.TrimPrefix(showDate, "상영날짜 ")
 		showTime = strings.TrimPrefix(showTime, "상영시간 ")
-		remainingSeats = strings.TrimPrefix(remainingSeats, "잔여좌석 ")
+		showMoment = strings.TrimPrefix(showMoment, "상영전후 ")
 		theater = strings.TrimPrefix(theater, "상영극장 ")
 		attendeeName = strings.TrimPrefix(attendeeName, "참석자명 ")
 
+		parts := strings.Split(theater, " ")
+
+		if len(parts) >= 2 {
+			hall = strings.Join(parts[1:], " ")
+			theater = parts[0]
+		}
+
 		data := map[string]string{
-			"ShowDate":       strings.TrimSpace(showDate),
-			"ShowTime":       strings.TrimSpace(showTime),
-			"RemainingSeats": strings.TrimSpace(remainingSeats),
-			"Theater":        strings.TrimSpace(theater),
-			"AttendeeName":   strings.TrimSpace(attendeeName),
-			"CinemaType":     cinemaType,
+			"ShowDate":     strings.TrimSpace(showDate),
+			"ShowTime":     strings.TrimSpace(showTime),
+			"ShowMoment":   strings.TrimSpace(showMoment),
+			"Theater":      strings.TrimSpace(theater),
+			"Hall":         strings.TrimSpace(hall),
+			"AttendeeName": strings.TrimSpace(attendeeName),
+			"CinemaType":   cinemaType,
 		}
 		dataList = append(dataList, data)
+		fmt.Println("[get data in siteUrl] - ing fetchStagereetingDataMegabox")
+		fmt.Println(data)
 	}
 	return dataList, nil
 }

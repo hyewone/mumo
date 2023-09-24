@@ -38,22 +38,21 @@ func (r *CrawlerRepository) GetMovieByName(name string) (*model.Movie, error) {
 }
 
 func (r *CrawlerRepository) AddStageGreeting(stageGreeting *model.StageGreeting) error {
-	var existingSg model.StageGreeting
-
 	keyAttrs := model.StageGreeting{
 		Movie:      stageGreeting.Movie,
 		CinemaType: stageGreeting.CinemaType,
 		Theater:    stageGreeting.Theater,
+		Hall:       stageGreeting.Hall,
 		ShowDate:   stageGreeting.ShowDate,
 		ShowTime:   stageGreeting.ShowTime,
+		ShowMoment: stageGreeting.ShowMoment,
 	}
 
 	valueAttrs := model.StageGreeting{
-		RemainingSeats: stageGreeting.RemainingSeats,
-		AttendeeName:   stageGreeting.AttendeeName,
+		AttendeeName: stageGreeting.AttendeeName,
 	}
 
-	err := r.DB.Where(keyAttrs).Assign(valueAttrs).FirstOrCreate(&existingSg).Error
+	err := r.DB.Where(keyAttrs).Assign(valueAttrs).FirstOrCreate(&stageGreeting).Error
 	if err != nil {
 		return err
 	}
@@ -61,21 +60,18 @@ func (r *CrawlerRepository) AddStageGreeting(stageGreeting *model.StageGreeting)
 	return nil
 }
 func (r *CrawlerRepository) AddStageGreetingUrl(stageGreetingUrl *model.StageGreetingUrl) error {
-	var existingUrls model.StageGreetingUrl
-
 	keyAttrs := model.StageGreetingUrl{
 		Movie:      stageGreetingUrl.Movie,
 		CinemaType: stageGreetingUrl.CinemaType,
 		Title:      stageGreetingUrl.Title,
 	}
-
 	valueAttrs := model.StageGreetingUrl{
 		Image: stageGreetingUrl.Image,
 		Url:   stageGreetingUrl.Url,
 		EndYn: stageGreetingUrl.EndYn,
 	}
 
-	err := r.DB.Where(keyAttrs).Assign(valueAttrs).FirstOrCreate(&existingUrls).Error
+	err := r.DB.Where(keyAttrs).Assign(valueAttrs).FirstOrCreate(&stageGreetingUrl).Error
 	if err != nil {
 		return err
 	}

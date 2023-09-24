@@ -1,11 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"github.com/go-co-op/gocron"
 
 	// Package
 	api "mumogo/controller/api/stageGreeting"
 	"mumogo/controller/auth"
+	"mumogo/controller/crawler"
 	"mumogo/model"
 
 	// Security
@@ -92,6 +97,22 @@ func main() {
 	db.DB.AutoMigrate(&model.Movie{})
 	db.DB.AutoMigrate(&model.StageGreeting{})
 	db.DB.AutoMigrate(&model.StageGreetingUrl{})
+
+	go func() {
+		// gocron 스케줄러 생성
+		s := gocron.NewScheduler(time.UTC)
+
+		// 5분 간격으로 실행될 작업을 정의
+		_, err = s.Every(5).Minutes().Do(crawler.NewCrawlerController().CrawlMegabox)
+
+		if err != nil {
+			fmt.Printf("NewCrawlerController Error: %s\n", err)
+			return
+		}
+
+		// 스케줄러 시작
+		s.StartBlocking()
+	}()
 
 	// crawler.NewCrawlerController().CrawlMegabox()
 	// crawler.NewCrawlerController().CrawlLotteCinema()
