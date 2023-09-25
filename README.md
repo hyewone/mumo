@@ -46,4 +46,4 @@
 
 <a name="cicd-pipeline"></a>
 ## CI/CD 파이프라인
-<img scr="images/mumo_cicd.PNG"></img>
+<img src="images/cloudtype_cicd.PNG"></img>
