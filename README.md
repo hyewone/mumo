@@ -38,9 +38,11 @@
 
 <a name="development-environment"></a>
 ## 개발 환경
-Go
-React
-PostgreSQL
+
+| Service | Dev Language | DevTools |
+|----------|----------|----------|
+| BE API | Golang | gin web framework, GROM, chromedp, Swagger, JWT, OAuth, PostgreSql |
+| Front | javascript | React, Redux |
 
 <a name="cicd-pipeline"></a>
 ## CI/CD 파이프라인
