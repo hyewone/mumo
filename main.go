@@ -10,7 +10,6 @@ import (
 	// Package
 	api "mumogo/controller/api/stageGreeting"
 	"mumogo/controller/auth"
-	"mumogo/controller/crawler"
 	"mumogo/model"
 
 	// Security
@@ -103,7 +102,7 @@ func main() {
 		s := gocron.NewScheduler(time.UTC)
 
 		// 5분 간격으로 실행될 작업을 정의
-		_, err = s.Every(5).Minutes().Do(crawler.NewCrawlerController().CrawlMegabox)
+		// _, err = s.Every(5).Minutes().Do(crawler.NewCrawlerController().CrawlMegabox)
 
 		if err != nil {
 			fmt.Printf("NewCrawlerController Error: %s\n", err)
