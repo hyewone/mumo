@@ -46,4 +46,4 @@
 
 <a name="cicd-pipeline"></a>
 ## CI/CD 파이프라인
-Github -> GithubAction -> CloudType
+<img scr="images/mumo_cicd.PNG"></img>
