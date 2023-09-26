@@ -3,6 +3,7 @@
 
 ## 목차
 - [프로젝트 소개](#project-introduction)
+- [깃 레포지토리](#git-repo)
 - [주요 기능](#main-function)
 - [개발 환경](#development-environment)
 - [CI/CD 파이프라인](#cicd-pipeline)
@@ -12,6 +13,15 @@
 <a name="project-introduction"></a>
 ## 프로젝트 소개
 메가박스, CGV, 롯데시네마 시네마 사이트에서 크롤링한 무대인사 정보를 지도, 달력 등 다양한 형태로 모아보는 토이 프로젝트입니다.
+
+</br>
+
+<a name="git-repo"></a>
+## 깃 레포지토리
+| 레포지토리 | 역할 | 
+|----------|----------|
+| [mumo](https://github.com/hyewone/mumo) | BE) 크롤링, RestAPI, 인증, 인가, JWT 토큰 발행 |
+| [mumo-react](https://github.com/hyewone/mumo-react) | FE) 화면 |
 
 </br>
 
