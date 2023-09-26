@@ -20,8 +20,8 @@
 ## 깃 레포지토리
 | 레포지토리 | 역할 | 
 |----------|----------|
-| [mumo](https://github.com/hyewone/mumo) | BE) 크롤링, RestAPI, 인증, 인가, JWT 토큰 발행 |
-| [mumo-react](https://github.com/hyewone/mumo-react) | FE) 화면 |
+| [mumo](https://github.com/hyewone/mumo) | 크롤링, RestAPI, 인증, 인가, JWT 토큰 발행 |
+| [mumo-react](https://github.com/hyewone/mumo-react) | 화면 |
 
 </br>
 
